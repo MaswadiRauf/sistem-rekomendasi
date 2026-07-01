@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+
+        <title>Movie Recommendation</title>
+
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet">
+
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/style.css') }}">
+        
+    </head>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    
+    <body>
+
+    {% include 'includes/navbar.html' %}
+
+    <div class="container mt-5">
+
+        <h1 class="text-center mb-5">
+            Movie Recommendation
+        </h1>
+
+        <form action="/search" method="GET">
+
+            <div class="input-group mb-5">
+
+                <input
+                    type="text"
+                    name="query"
+                    class="form-control"
+                    placeholder="Search movie...">
+
+                <button class="btn btn-dark">
+                    Search
+                </button>
+
+            </div>
+
+        </form>
+
+        <div id="recently-viewed-section"></div>
+
+        {% for genre, movies in genre_sections.items() %}
+
+        <h3 class="mb-4 mt-5">
+            {{ genre }} Movies
+        </h3>
+
+        <div class="movie-row">
+
+            {% for movie in movies %}
+
+            <a
+                href="/movie/{{ movie.movieId }}"
+                class="movie-link">
+
+                <div class="movie-card">
+
+                    <img
+                        src="{{ movie.poster_url }}"
+                        alt="{{ movie.title }}">
+
+                    <div class="movie-info">
+
+                        <h5>{{ movie.title }}</h5>
+
+                        <p>{{ movie.genres }}</p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <script>
+
+    const recentMovies = JSON.parse(
+        localStorage.getItem("recentMovies")
+    ) || []
+
+    if(recentMovies.length > 0){
+
+        let movieHTML = ""
+
+        recentMovies.forEach(movie => {
+
+            movieHTML += `
+
+                <a
+                    href="/movie/${movie.id}"
+                    class="movie-link">
+
+                    <div class="movie-card">
+
+                        <img
+                            src="${movie.poster}"
+                            alt="${movie.title}">
+
+                        <div class="movie-info">
+
+                            <h5>
+                                ${movie.title}
+                            </h5>
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            `
+        })
+
+        document.getElementById(
+            "recently-viewed-section"
+        ).innerHTML = `
+
+            <h3 class="mb-4">
+                Recently Viewed
+            </h3>
+
+            <div class="movie-row">
+
+                ${movieHTML}
+
+            </div>
+
+            <hr class="my-5">
+
+        `
+    }
+
+    </script>
+
+    </body>
+    </html>

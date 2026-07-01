@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Metrics Evaluation</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <style>
+
+    .card{
+        border-radius:15px;
+    }
+
+    </style>
+
+</head>
+
+<body style="background:#f5f5f5;">
+
+{% include 'includes/navbar.html' %}
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm p-4">
+
+        <h1 class="mb-4">
+            Evaluation Metrics
+        </h1>
+
+        <p>
+            The hybrid recommendation system
+            was evaluated using RMSE and MAE
+            metrics to measure prediction accuracy.
+        </p>
+
+        <hr>
+
+        <h3 class="mb-4">
+            MovieLens Results
+        </h3>
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th>Dataset</th>
+                <td>{{ metrics.movielens.dataset }}</td>
+            </tr>
+
+            <tr>
+                <th>Model</th>
+                <td>{{ metrics.movielens.model }}</td>
+            </tr>
+
+            <tr>
+                <th>RMSE</th>
+                <td>{{ metrics.movielens.rmse }}</td>
+            </tr>
+
+            <tr>
+                <th>MAE</th>
+                <td>{{ metrics.movielens.mae }}</td>
+            </tr>
+
+            <tr>
+                <th>Best Alpha</th>
+                <td>{{ metrics.movielens.alpha }}</td>
+            </tr>
+
+        </table>
+
+        <hr>
+
+        <h3 class="mb-4">
+            Last.fm Results
+        </h3>
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th>Dataset</th>
+                <td>{{ metrics.lastfm.dataset }}</td>
+            </tr>
+
+            <tr>
+                <th>Model</th>
+                <td>{{ metrics.lastfm.model }}</td>
+            </tr>
+
+            <tr>
+                <th>RMSE</th>
+                <td>{{ metrics.lastfm.rmse }}</td>
+            </tr>
+
+            <tr>
+                <th>MAE</th>
+                <td>{{ metrics.lastfm.mae }}</td>
+            </tr>
+
+            <tr>
+                <th>Best Alpha</th>
+                <td>{{ metrics.lastfm.alpha }}</td>
+            </tr>
+
+        </table>
+
+        <hr>
+
+        <p class="text-center text-muted">
+
+            Hybrid Recommendation System Evaluation
+
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
