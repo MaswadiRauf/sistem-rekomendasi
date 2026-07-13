@@ -1,32 +1,55 @@
 from flask import Flask, render_template, request, redirect, url_for
 import pandas as pd
+import traceback
 import joblib
+from huggingface_hub import hf_hub_download
 import requests
 import random
 import json
 import numpy as np
 
 app = Flask(__name__)
+REPO_ID = "maswadi/hybrid-recommender-model"
 
+# Lazy loading variables
+movie_svdpp = None
+movie_knn = None
+
+lastfm_svdpp = None
+lastfm_knn = None
+
+def load_hf_file(filename):
+    return hf_hub_download(
+        repo_id=REPO_ID,
+        filename=filename
+    )
 # LOAD MODEL
 
-movie_svdpp = joblib.load(
-    "models/movie_svdpp_tuned.pkl"
-)
+def get_movie_svdpp():
+    global movie_svdpp
 
-movie_knn = joblib.load(
-    "models/movie_knn.pkl"
-)
+    if movie_svdpp is None:
+        movie_svdpp = joblib.load(
+            load_hf_file("movie_svdpp_tuned.pkl")
+        )
 
-print("HAS TRAINSET:", hasattr(movie_knn, "trainset"))
-print("HAS SIM:", hasattr(movie_knn, "sim"))
-print("SIM SHAPE:", movie_knn.sim.shape)
-print(movie_knn.trainset.to_inner_iid("1"))
+    return movie_svdpp
+
+
+def get_movie_knn():
+    global movie_knn
+
+    if movie_knn is None:
+        movie_knn = joblib.load(
+            load_hf_file("movie_knn.pkl")
+        )
+
+    return movie_knn
 
 # HYBRID ALPHA
 
 with open(
-    "models/movie_hybrid_tuned_alpha.json",
+    load_hf_file("movie_hybrid_tuned_alpha.json"),
     "r"
 ) as f:
     hybrid_config = json.load(f)
@@ -35,16 +58,29 @@ ALPHA = hybrid_config["alpha"]
 
 # LOAD LASTFM MODEL
 
-lastfm_svdpp = joblib.load(
-    "models/lastfm_svdpp_tuned.pkl"
-)
+def get_lastfm_svdpp():
+    global lastfm_svdpp
 
-lastfm_knn = joblib.load(
-    "models/lastfm_knn.pkl"
-)
+    if lastfm_svdpp is None:
+        lastfm_svdpp = joblib.load(
+            load_hf_file("lastfm_svdpp_tuned.pkl")
+        )
+
+    return lastfm_svdpp
+
+
+def get_lastfm_knn():
+    global lastfm_knn
+
+    if lastfm_knn is None:
+        lastfm_knn = joblib.load(
+            load_hf_file("lastfm_knn.pkl")
+        )
+
+    return lastfm_knn
 
 with open(
-    "models/lastfm_hybrid_tuned_alpha.json",
+    load_hf_file("lastfm_hybrid_tuned_alpha.json"),
     "r"
 ) as f:
     lastfm_config = json.load(f)
@@ -382,18 +418,20 @@ def recommend_movies(movie_id, n=10):
             try:
 
                 pred_svdpp = (
-                    movie_svdpp.predict(
+                    get_movie_svdpp().predict(
                         str(user_id),
                         str(candidate_movie)
                     ).est
                 )
+                print("SVD:", pred_svdpp)
 
                 pred_knn = (
-                    movie_knn.predict(
+                    get_movie_knn().predict(
                         str(user_id),
                         str(candidate_movie)
                     ).est
                 )
+                print("KNN:", pred_knn)
 
                 hybrid_score = (
 
@@ -407,11 +445,13 @@ def recommend_movies(movie_id, n=10):
                 hybrid_scores.append(
                     hybrid_score
                 )
+                print("Hybrid:", hybrid_score)
 
-            except:
-                pass
+            except Exception:
+                traceback.print_exc()
 
         if len(hybrid_scores) == 0:
+            print(f"Tidak ada hybrid score untuk movie {candidate_movie}")
             continue
 
         final_score = (
@@ -428,8 +468,10 @@ def recommend_movies(movie_id, n=10):
             ==
 
             str(candidate_movie)
-
         ]
+        
+        print(candidate_movie, len(movie_data))
+        
 
         if len(movie_data) == 0:
             continue
@@ -469,6 +511,8 @@ def recommend_movies(movie_id, n=10):
         reverse=True
 
     )
+    
+    print("TOTAL RECOMMENDATIONS:", len(recommendations))
 
     return recommendations[:n]
 
@@ -648,12 +692,12 @@ def recommend_music(artist_id, n=10):
 
             try:
 
-                pred_svdpp = lastfm_svdpp.predict(
+                pred_svdpp = get_lastfm_svdpp().predict(
                     user_id,
                     candidate_artist
                 ).est
 
-                pred_knn = lastfm_knn.predict(
+                pred_knn = get_lastfm_knn().predict(
                     user_id,
                     candidate_artist
                 ).est
@@ -672,8 +716,8 @@ def recommend_music(artist_id, n=10):
                     hybrid_score
                 )
 
-            except:
-                pass
+            except Exception:
+                traceback.print_exc()
 
         if len(hybrid_scores) == 0:
             continue
@@ -840,4 +884,4 @@ def metrics():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
