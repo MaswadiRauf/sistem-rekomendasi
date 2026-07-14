@@ -8,12 +8,20 @@ import requests
 import random
 import json
 import numpy as np
-
-app = Flask(__name__)
-REPO_ID = "maswadi/hybrid-recommender-model"
+import surprise.builtin_datasets as bd
 
 os.environ["HF_HOME"] = "/tmp/huggingface"
 os.environ["HF_HUB_CACHE"] = "/tmp/huggingface"
+
+os.environ["SURPRISE_DATA_FOLDER"] = "/tmp/surprise"
+
+os.makedirs("/tmp/huggingface", exist_ok=True)
+os.makedirs("/tmp/surprise", exist_ok=True)
+
+bd.get_dataset_dir = lambda: "/tmp/surprise"
+
+app = Flask(__name__)
+REPO_ID = "maswadi/hybrid-recommender-model"
 
 # Lazy loading variables
 movie_svdpp = None
@@ -90,15 +98,16 @@ def get_lastfm_knn():
 
     return lastfm_knn
 
-ALPHA = None
-def get_movie_alpha():
-    global ALPHA
+LASTFM_ALPHA = None
 
-    if ALPHA is None:
+def get_lastfm_alpha():
+    global LASTFM_ALPHA
+
+    if LASTFM_ALPHA is None:
         with open(load_hf_file("lastfm_hybrid_tuned_alpha.json"), "r") as f:
-            ALPHA = json.load(f)["alpha"]
+            LASTFM_ALPHA = json.load(f)["alpha"]
 
-    return ALPHA
+    return LASTFM_ALPHA
 
 # LASTFM_ALPHA = lastfm_config["alpha"]
 
