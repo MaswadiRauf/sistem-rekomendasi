@@ -12,6 +12,9 @@ import numpy as np
 app = Flask(__name__)
 REPO_ID = "maswadi/hybrid-recommender-model"
 
+os.environ["HF_HOME"] = "/tmp/huggingface"
+os.environ["HF_HUB_CACHE"] = "/tmp/huggingface"
+
 # Lazy loading variables
 movie_svdpp = None
 movie_knn = None
@@ -19,11 +22,13 @@ movie_knn = None
 lastfm_svdpp = None
 lastfm_knn = None
 
+
 def load_hf_file(filename):
     return hf_hub_download(
         repo_id=REPO_ID,
         filename=filename,
-        token=os.getenv("HF_TOKEN")
+        token=os.getenv("HF_TOKEN"),
+        cache_dir="/tmp/huggingface"
     )
 # LOAD MODEL
 
@@ -49,14 +54,18 @@ def get_movie_knn():
     return movie_knn
 
 # HYBRID ALPHA
+ALPHA = None
 
-with open(
-    load_hf_file("movie_hybrid_tuned_alpha.json"),
-    "r"
-) as f:
-    hybrid_config = json.load(f)
+def get_movie_alpha():
+    global ALPHA
 
-ALPHA = hybrid_config["alpha"]
+    if ALPHA is None:
+        with open(load_hf_file("movie_hybrid_tuned_alpha.json"), "r") as f:
+            ALPHA = json.load(f)["alpha"]
+
+    return ALPHA
+
+# ALPHA = hybrid_config["alpha"]
 
 # LOAD LASTFM MODEL
 
@@ -81,13 +90,17 @@ def get_lastfm_knn():
 
     return lastfm_knn
 
-with open(
-    load_hf_file("lastfm_hybrid_tuned_alpha.json"),
-    "r"
-) as f:
-    lastfm_config = json.load(f)
+ALPHA = None
+def get_movie_alpha():
+    global ALPHA
 
-LASTFM_ALPHA = lastfm_config["alpha"]
+    if ALPHA is None:
+        with open(load_hf_file("lastfm_hybrid_tuned_alpha.json"), "r") as f:
+            ALPHA = json.load(f)["alpha"]
+
+    return ALPHA
+
+# LASTFM_ALPHA = lastfm_config["alpha"]
 
 # LOAD MOVIELENS DATA
 
