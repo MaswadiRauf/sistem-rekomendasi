@@ -8,7 +8,6 @@ import requests
 import random
 import json
 import numpy as np
-import surprise.builtin_datasets as bd
 
 os.environ["HF_HOME"] = "/tmp/huggingface"
 os.environ["HF_HUB_CACHE"] = "/tmp/huggingface"
@@ -17,8 +16,6 @@ os.environ["SURPRISE_DATA_FOLDER"] = "/tmp/surprise"
 
 os.makedirs("/tmp/huggingface", exist_ok=True)
 os.makedirs("/tmp/surprise", exist_ok=True)
-
-bd.get_dataset_dir = lambda: "/tmp/surprise"
 
 app = Flask(__name__)
 REPO_ID = "maswadi/hybrid-recommender-model"
