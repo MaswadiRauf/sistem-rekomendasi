@@ -65,8 +65,15 @@ def get_movie_alpha():
     global ALPHA
 
     if ALPHA is None:
-        with open(load_hf_file("movie_hybrid_tuned_alpha.json"), "r") as f:
-            ALPHA = json.load(f)["alpha"]
+        path = load_hf_file("movie_hybrid_tuned_alpha.json")
+        print("JSON PATH:", path)
+
+        with open(path, "r") as f:
+            data = json.load(f)
+
+        print("JSON DATA:", data)
+
+        ALPHA = data["alpha"]
 
     return ALPHA
 
@@ -339,6 +346,12 @@ def recommend_movies(movie_id, n=10):
 
     movie_id_int = int(movie_id)
 
+    ALPHA = get_movie_alpha()
+    
+    print("=" * 50)
+    print("ALPHA =", ALPHA)
+    print(type(ALPHA))
+    print("=" * 50)
 
     # USER YANG MENYUKAI FILM TERSEBUT
 
@@ -438,20 +451,17 @@ def recommend_movies(movie_id, n=10):
 
             try:
 
-                pred_svdpp = (
-                    get_movie_svdpp().predict(
-                        str(user_id),
-                        str(candidate_movie)
-                    ).est
-                )
+                pred_svdpp = get_movie_svdpp().predict(
+                    user_id,
+                    candidate_movie
+                ).est
+                
                 print("SVD:", pred_svdpp)
 
-                pred_knn = (
-                    get_movie_knn().predict(
-                        str(user_id),
-                        str(candidate_movie)
-                    ).est
-                )
+                pred_knn = get_movie_knn().predict(
+                    user_id,
+                    candidate_movie
+                ).est
                 print("KNN:", pred_knn)
 
                 hybrid_score = (
@@ -601,6 +611,8 @@ def search_movie():
 def recommend_music(artist_id, n=10):
 
     artist_id_int = int(artist_id)
+    
+    LASTFM_ALPHA = get_lastfm_alpha()
 
     target_users = lastfm_df[
         (lastfm_df["artistID"] == artist_id_int)
