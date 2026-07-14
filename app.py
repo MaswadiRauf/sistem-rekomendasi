@@ -441,10 +441,10 @@ def recommend_movies(movie_id, n=10):
 
         hybrid_scores = []
 
-        sample_users = (
-            target_users[:20]
-            if len(target_users) > 20
-            else target_users
+        sample_users = np.random.choice(
+            target_users,
+            min(20, len(target_users)),
+            replace=False
         )
 
         for user_id in sample_users:
